@@ -1,0 +1,494 @@
+{
+  "info": {
+    "_postman_id": "1b7a91f0-602a-4652-b6f8-2d4efaa4f913",
+    "name": "Pharmacy Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection pour tester l'API pharmacy-backend (auth, search, pharmacy, admin)."
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json && json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}",
+                  "if (json && json.user && json.user.pharmacyId) {",
+                  "  pm.collectionVariables.set('pharmacyId', String(json.user.pharmacyId));",
+                  "}",
+                  "pm.test('Token is returned', function () {",
+                  "  pm.expect(json.token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('User role is admin', function () {",
+                  "  pm.expect(json.user.role).to.eql('admin');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "GET Search Medicines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?medicine={{searchTerm}}&userLat={{userLat}}&userLng={{userLng}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "medicine",
+                  "value": "{{searchTerm}}"
+                },
+                {
+                  "key": "userLat",
+                  "value": "{{userLat}}"
+                },
+                {
+                  "key": "userLng",
+                  "value": "{{userLng}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pharmacy",
+      "item": [
+        {
+          "name": "GET Pharmacy Medicines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pharmacy/{{pharmacyId}}/medicines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pharmacy",
+                "{{pharmacyId}}",
+                "medicines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Add Medicine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.medicine && json.medicine.id) {",
+                  "  pm.collectionVariables.set('medicineId', String(json.medicine.id));",
+                  "}",
+                  "pm.test('Status is 200 or 201', function () {",
+                  "  pm.expect([200, 201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{medicineName}}\",\n  \"stock\": {{medicineStock}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pharmacy/{{pharmacyId}}/medicines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pharmacy",
+                "{{pharmacyId}}",
+                "medicines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Update Medicine Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": {{updatedMedicineStock}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pharmacy/{{pharmacyId}}/medicines/{{medicineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pharmacy",
+                "{{pharmacyId}}",
+                "medicines",
+                "{{medicineId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Medicine",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pharmacy/{{pharmacyId}}/medicines/{{medicineId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pharmacy",
+                "{{pharmacyId}}",
+                "medicines",
+                "{{medicineId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Pharmacies",
+      "item": [
+        {
+          "name": "GET Admin Pharmacies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pharmacies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pharmacies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Create Admin Pharmacy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const p = json.pharmacy || json;",
+                  "if (p && p.id) {",
+                  "  pm.collectionVariables.set('adminPharmacyId', String(p.id));",
+                  "}",
+                  "pm.test('Temporary pharmacist password returned', function () {",
+                  "  pm.expect(json.pharmacistUser).to.be.an('object');",
+                  "  pm.expect(json.pharmacistUser.temporaryPassword).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('Status is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{newPharmacyName}}\",\n  \"email\": \"{{newPharmacyEmail}}\",\n  \"address\": \"{{newPharmacyAddress}}\",\n  \"latitude\": {{newPharmacyLat}},\n  \"longitude\": {{newPharmacyLng}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/pharmacies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pharmacies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Update Admin Pharmacy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{updatedPharmacyName}}\",\n  \"email\": \"{{updatedPharmacyEmail}}\",\n  \"address\": \"{{updatedPharmacyAddress}}\",\n  \"latitude\": {{updatedPharmacyLat}},\n  \"longitude\": {{updatedPharmacyLng}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/pharmacies/{{adminPharmacyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pharmacies",
+                "{{adminPharmacyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Admin Pharmacy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/pharmacies/{{adminPharmacyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "pharmacies",
+                "{{adminPharmacyId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@pharmacy.local"
+    },
+    {
+      "key": "adminPassword",
+      "value": "admin123"
+    },
+    {
+      "key": "searchTerm",
+      "value": "Paracetamol"
+    },
+    {
+      "key": "userLat",
+      "value": "36.75"
+    },
+    {
+      "key": "userLng",
+      "value": "3.06"
+    },
+    {
+      "key": "pharmacyId",
+      "value": "1"
+    },
+    {
+      "key": "medicineId",
+      "value": "1"
+    },
+    {
+      "key": "medicineName",
+      "value": "Amoxicillin"
+    },
+    {
+      "key": "medicineStock",
+      "value": "20"
+    },
+    {
+      "key": "updatedMedicineStock",
+      "value": "35"
+    },
+    {
+      "key": "adminPharmacyId",
+      "value": "1"
+    },
+    {
+      "key": "newPharmacyName",
+      "value": "South Pharmacy"
+    },
+    {
+      "key": "newPharmacyEmail",
+      "value": "south@pharmacy.local"
+    },
+    {
+      "key": "newPharmacyAddress",
+      "value": "Rue de la Sante"
+    },
+    {
+      "key": "newPharmacyLat",
+      "value": "36.73"
+    },
+    {
+      "key": "newPharmacyLng",
+      "value": "3.09"
+    },
+    {
+      "key": "updatedPharmacyName",
+      "value": "South Pharmacy Updated"
+    },
+    {
+      "key": "updatedPharmacyEmail",
+      "value": "south.updated@pharmacy.local"
+    },
+    {
+      "key": "updatedPharmacyAddress",
+      "value": "Boulevard Central"
+    },
+    {
+      "key": "updatedPharmacyLat",
+      "value": "36.731"
+    },
+    {
+      "key": "updatedPharmacyLng",
+      "value": "3.091"
+    }
+  ]
+}
